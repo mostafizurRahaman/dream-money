@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Playball&family=Signika+Negative:wght@300;400;500;600;700&family=Victor+Mono:ital,wght@0,300;0,600;0,700;1,600&display=swap');
+
+body {
+   font-family: "Signika Negative", sans-serif;
+   display: block;
+}
+

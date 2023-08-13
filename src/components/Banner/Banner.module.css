@@ -1,0 +1,8 @@
+.Banner {
+   background: linear-gradient(90deg, rgba(33, 36, 40), rgba(33, 36, 40, 0.408)),
+      url("../../assets/banner.jpg") no-repeat; 
+   background-position: center center; 
+   background-size: cover; 
+   object-fit: cover;
+   /* background: #212428; */
+}
