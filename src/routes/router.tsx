@@ -4,6 +4,8 @@ import MainLayout from "../layout/MainLayout";
 import About from "../pages/About";
 import Contact from "../pages/Contact";
 import Jobs from "../pages/Jobs";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
 
 
 export const routes = createBrowserRouter([
@@ -31,7 +33,14 @@ export const routes = createBrowserRouter([
             path:'/find-jobs', 
             element: <Jobs></Jobs>
          }, 
-         
+         {
+            path: '/login', 
+            element: <Login></Login>
+         }, 
+         {
+            path: '/register', 
+            element: <Register></Register>
+         }
         
       ],
    },

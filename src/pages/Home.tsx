@@ -23,9 +23,9 @@ const Home = () => {
                <ServiceCard></ServiceCard>
             </div>
          </Section>
-        <PaymentSection></PaymentSection>
-        <OverviewSection></OverviewSection>
-        <Footer></Footer>
+         <PaymentSection></PaymentSection>
+         <OverviewSection></OverviewSection>
+         <Footer></Footer>
       </>
    );
 };
