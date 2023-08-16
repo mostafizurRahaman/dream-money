@@ -40,7 +40,7 @@ export type RegisterErrorType = {
    confirm: string;
    gender: string;
    termsAndServies: string;
-   image: string;
+   profile: string;
 } & loginErrorType;
 export type RegisterType = {
    firstName: string;
@@ -49,7 +49,7 @@ export type RegisterType = {
    confirm: string;
    gender: "male" | "female";
    termsAndServices: boolean;
-   image: string;
+   profile: string;
 } & loginType;
 
 export type InputTextType = {
@@ -63,4 +63,17 @@ export type GenderSelectionType = {
    label: string;
    setData: DispatchDataType;
    data: RegisterType;
+};
+
+export type UploadImageType = {
+   label: string;
+   name: string;
+   error: string;
+   image?: string;
+   onChange: ChangeInputType;
+};
+
+export type CheckBoxType = {
+   handleCheckBox: ChangeInputType;
+   checked: boolean;
 };

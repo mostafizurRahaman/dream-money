@@ -3,11 +3,17 @@ import {
    ChangeInputType,
    RegisterErrorType,
    RegisterType,
+   UploadImageType,
 } from "../Configs/types";
 import InputText from "../components/InputText/InputText";
 import InputSelection from "../components/InputSelecdtion/InputSelection";
-
+import UploadImage from "../components/UploadImage/UploadImage";
+import SubmitButton from "../components/Buttons/SubmitButton";
+import CheckBox from "../components/CheckBox/CheckBox";
+import { useLottie } from "lottie-react";
+import signUpImage from "../assets/SignUp.json"; 
 const Register = () => {
+
    const [data, setData] = useState<RegisterType>({
       firstName: "",
       lastName: "",
@@ -16,7 +22,7 @@ const Register = () => {
       password: "",
       confirm: "",
       gender: "male",
-      image: "",
+      profile: "",
       termsAndServices: false,
    });
 
@@ -28,7 +34,7 @@ const Register = () => {
       password: "",
       confirm: "",
       gender: "",
-      image: "",
+      profile: "",
       termsAndServies: "",
       general: "",
    });
@@ -107,10 +113,29 @@ const Register = () => {
       }
    };
    console.log(data, errors);
+   const handleUploadImage: ChangeInputType = (e) => {
+      const name: string = e.target.name;
+   };
+
+   const handleCheckBox: ChangeInputType = (e) => {
+      setData({ ...data, termsAndServices: e.target.checked });
+   };
+
+   const options = {
+      animationData: signUpImage,
+      loop: true
+    };
+
+    const {View }  = useLottie(options); 
 
    return (
-      <main className="bg-primary ">
-         <form className="w-3/5 px-10 py-5">
+      <main className="bg-primary px-10 py-10 flex items-center gap-5 ">
+         <form className="border-dotted border-2 rounded-lg border-secondary w-1/2 px-10 py-5 grid grid-cols-2 gap-5">
+            <div className="col-span-2 text-center">
+               <h3 className="text-4xl font-medium text-accent ">
+                  Sign Up Form
+               </h3>
+            </div>
             <InputText
                name="firstName"
                type="text"
@@ -159,12 +184,34 @@ const Register = () => {
                error={errors?.confirm}
                onChange={handlePassword}
             ></InputText>
-            <InputSelection
-               label="Your Gender"
-               data={data}
-               setData={setData}
-            ></InputSelection>
+            <div className="col-span-2 flex flex-col gap-3">
+               <InputSelection
+                  label="Your Gender"
+                  data={data}
+                  setData={setData}
+               ></InputSelection>
+               <UploadImage
+                  onChange={handleUploadImage}
+                  label="Your photo"
+                  name="profile"
+                  image={data.profile && data.profile}
+                  error={errors.profile}
+               ></UploadImage>
+               <CheckBox
+                  handleCheckBox={handleCheckBox}
+                  checked={data.termsAndServices}
+               ></CheckBox>
+               <SubmitButton
+                  validation={true}
+                  text="Sign Up Now"
+               ></SubmitButton>
+            </div>
          </form>
+         <div className=" flex items-center justify-center">
+            {
+               View
+            }
+         </div>
       </main>
    );
 };

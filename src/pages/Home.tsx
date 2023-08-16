@@ -10,7 +10,6 @@ import Tilte from "../components/Title/Tilte";
 const Home = () => {
    return (
       <>
-         <Nav></Nav>
          <Banner></Banner>
          <Section>
             <Tilte>Why choose us</Tilte>
@@ -25,7 +24,6 @@ const Home = () => {
          </Section>
          <PaymentSection></PaymentSection>
          <OverviewSection></OverviewSection>
-         <Footer></Footer>
       </>
    );
 };

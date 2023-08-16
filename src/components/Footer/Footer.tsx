@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 const Footer = () => {
    return (
-      <footer className="bg-primary py-20 ">
+      <footer className="bg-primary border-t border-accent py-20 ">
          <div className="flex items-start  ">
             <div className="w-2/4 px-10 flex flex-col gap-3">
                <h4 className="text-secondary text-2xl font-bold uppercase">
