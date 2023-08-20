@@ -5,6 +5,9 @@ import {
    RegisterErrorType,
    RegisterType,
    SaveUserType,
+   newUser,
+   newUserType,
+   url,
 } from "../Configs/types";
 import InputText from "../components/InputText/InputText";
 import InputSelection from "../components/InputSelecdtion/InputSelection";
@@ -15,9 +18,11 @@ import { useLottie } from "lottie-react";
 import signUpImage from "../assets/SignUp.json";
 import { AuthContext } from "../Contexts/AuthProvider";
 import { User } from "firebase/auth";
+import { BsDatabaseGear } from "react-icons/bs";
 
 const Register = () => {
-   const { createUser, updateProfileInfo } = useContext(AuthContext);
+   const { createUser, user, updateProfileInfo } = useContext(AuthContext);
+   const [registerEmail, setRegisterEmail] = useState<string>();
    const [loading, setLoading] = useState<boolean>(false);
    const [data, setData] = useState<RegisterType>({
       firstName: "",
@@ -153,7 +158,7 @@ const Register = () => {
       setData({ ...data, termsAndServices: e.target.checked });
    };
 
-   const handlePhoneNumber = (e) => {
+   const handlePhoneNumber: ChangeInputType = (e) => {
       const name: string = e.target.name;
       const value: string = e.target.value;
       if (value.length <= 0) {
@@ -228,12 +233,49 @@ const Register = () => {
          .then((res) => {
             console.log(res);
             setLoading(true);
+            const newUser : newUserType = {
+               firstName,
+               lastName,
+               username,
+               phone,
+               email,
+               gender,
+               profile,
+               termsAndServices,
+            };
          })
          .catch((err) => {
             console.log(err);
             if (err) {
                setLoading(true);
                setErrors({ ...errors, general: err.message });
+            }
+         })
+         .finally(() => {
+            setLoading(false);
+         });
+   };
+
+   const AddNewUser = (newUser) => {
+      setLoading(true);
+      fetch(`${url}users`, {
+         method: "Post",
+         headers: {
+            "content-type": "application/json",
+         },
+         body: JSON.stringify(newUser),
+      })
+         .then((res) => res.json())
+         .then((data) => {
+            if (data.acknowledged) {
+               setLoading(false);
+               setRegisterEmail(email);
+            }
+         })
+         .catch((err) => {
+            setLoading(false);
+            if (err) {
+               setErrors({ ...errors, general: err?.message });
             }
          })
          .finally(() => {
@@ -249,7 +291,10 @@ const Register = () => {
             className="border-dotted border-2 rounded-lg border-secondary w-1/2 px-10 py-5 grid grid-cols-2 gap-5"
          >
             <div className="col-span-2 text-center">
-               <h3 className="text-4xl font-medium text-accent ">
+               <h3
+                  onChange={(e) => console.log(e)}
+                  className="text-4xl font-medium text-accent "
+               >
                   Sign Up Form
                </h3>
             </div>

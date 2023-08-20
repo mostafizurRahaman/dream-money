@@ -14,6 +14,7 @@ export type SaveUserType = (
    photoURL: string
 ) => void;
 
+export type AddNewUserType = (newUser: newUserType) => void;
 export type OnSubmitType = (e: FormEvent<HTMLFormElement>) => void;
 
 // Dispatch Function types:
@@ -118,4 +119,17 @@ export interface InputPhoneNumberType {
    placeholder: string;
    onChange: ChangeInputType;
    error: string;
+}
+
+export const url: string = import.meta.env.VITE_BASE_URL;
+
+export interface newUserType {
+   firstName: string;
+   lastName: string;
+   username: string;
+   phone: string;
+   email: string;
+   gender: "male" | "female";
+   profile: string;
+   termsAndServices: boolean;
 }
