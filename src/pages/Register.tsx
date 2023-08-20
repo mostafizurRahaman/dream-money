@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useContext } from "react";
 import {
    ChangeInputType,
+   OnSubmitType,
    RegisterErrorType,
    RegisterType,
-   UploadImageType,
+   SaveUserType,
 } from "../Configs/types";
 import InputText from "../components/InputText/InputText";
 import InputSelection from "../components/InputSelecdtion/InputSelection";
@@ -11,14 +12,19 @@ import UploadImage from "../components/UploadImage/UploadImage";
 import SubmitButton from "../components/Buttons/SubmitButton";
 import CheckBox from "../components/CheckBox/CheckBox";
 import { useLottie } from "lottie-react";
-import signUpImage from "../assets/SignUp.json"; 
-const Register = () => {
+import signUpImage from "../assets/SignUp.json";
+import { AuthContext } from "../Contexts/AuthProvider";
+import { User } from "firebase/auth";
 
+const Register = () => {
+   const { createUser, updateProfileInfo } = useContext(AuthContext);
+   const [loading, setLoading] = useState<boolean>(false);
    const [data, setData] = useState<RegisterType>({
       firstName: "",
       lastName: "",
       username: "",
       email: "",
+      phone: "",
       password: "",
       confirm: "",
       gender: "male",
@@ -30,6 +36,7 @@ const Register = () => {
       firstName: "",
       lastName: "",
       email: "",
+      phone: "",
       username: "",
       password: "",
       confirm: "",
@@ -38,7 +45,7 @@ const Register = () => {
       termsAndServies: "",
       general: "",
    });
-
+   const formRef = useRef(null);
    const handleName: ChangeInputType = (e) => {
       const name: string = e?.target?.name;
       const value: string = e?.target.value;
@@ -114,23 +121,133 @@ const Register = () => {
    };
    console.log(data, errors);
    const handleUploadImage: ChangeInputType = (e) => {
-      const name: string = e.target.name;
+      const formData: FormData = new FormData();
+      const files: FileList | null = e.target.files;
+      if (files) {
+         const uploadImage = files[0];
+         formData.append("image", uploadImage);
+         fetch(
+            `https://api.imgbb.com/1/upload?key=${
+               import.meta.env.VITE_IMAGE_BB
+            }`,
+            {
+               method: "POST",
+               body: formData,
+            }
+         )
+            .then((res) => res.json())
+            .then((imgData) => {
+               if (imgData.success) {
+                  setData({ ...data, profile: imgData.data.url });
+                  setErrors({ ...errors, profile: "" });
+               } else {
+                  setData({ ...data, profile: "" });
+                  setErrors({ ...errors, profile: imgData.error.message });
+               }
+            })
+            .catch((err) => console.log(err));
+      }
    };
 
    const handleCheckBox: ChangeInputType = (e) => {
       setData({ ...data, termsAndServices: e.target.checked });
    };
 
+   const handlePhoneNumber = (e) => {
+      const name: string = e.target.name;
+      const value: string = e.target.value;
+      if (value.length <= 0) {
+         setErrors({ ...errors, [name]: "phone number shouldn't be empty" });
+         setData({ ...data, [name]: "" });
+      } else if (value.length !== 11) {
+         setErrors({ ...errors, [name]: "phone number must be 11 digits" });
+         setData({ ...data, [name]: "" });
+      } else if (/^(013|014|015|016|017|018|019)\d{8}$/.test(value)) {
+         setErrors({ ...errors, [name]: "enter a valid bangladeshi number" });
+         setData({ ...data, [name]: "" });
+      } else {
+         setErrors({ ...errors, [name]: "" });
+         setData({ ...data, [name]: value });
+      }
+   };
    const options = {
       animationData: signUpImage,
-      loop: true
-    };
+      loop: true,
+   };
 
-    const {View }  = useLottie(options); 
+   const { View } = useLottie(options);
+
+   const {
+      firstName,
+      lastName,
+      username,
+      email,
+      phone,
+      password,
+      confirm,
+      gender,
+      profile,
+      termsAndServices,
+   }: RegisterType = data;
+
+   const handleRegister: OnSubmitType = (e) => {
+      setLoading(true);
+      setErrors({ ...errors, general: "" });
+      e.preventDefault();
+      if (password !== confirm) {
+         setErrors({ ...errors, confirm: "password not matached" });
+         setLoading(false);
+         return;
+      }
+
+      createUser(data.email, data.password)
+         .then((res) => {
+            const user: User = res.user;
+            if (user.email) {
+               saveUser(data.firstName, data.lastName, data.profile);
+            }
+         })
+         .catch((err) => {
+            console.log(err);
+            if (err) {
+               setLoading(false);
+               setErrors({ ...errors, general: err.message });
+            }
+         })
+         .finally(() => {
+            setLoading(true);
+         });
+   };
+
+   const saveUser: SaveUserType = (
+      firstName: string,
+      lastName: string,
+      photoURL: string
+   ) => {
+      updateProfileInfo(`${firstName + "" + lastName}`, photoURL)
+         .then((res) => {
+            console.log(res);
+            setLoading(true);
+         })
+         .catch((err) => {
+            console.log(err);
+            if (err) {
+               setLoading(true);
+               setErrors({ ...errors, general: err.message });
+            }
+         })
+         .finally(() => {
+            setLoading(false);
+         });
+   };
 
    return (
       <main className="bg-primary px-10 py-10 flex items-center gap-5 ">
-         <form className="border-dotted border-2 rounded-lg border-secondary w-1/2 px-10 py-5 grid grid-cols-2 gap-5">
+         <form
+            onSubmit={handleRegister}
+            ref={formRef}
+            className="border-dotted border-2 rounded-lg border-secondary w-1/2 px-10 py-5 grid grid-cols-2 gap-5"
+         >
             <div className="col-span-2 text-center">
                <h3 className="text-4xl font-medium text-accent ">
                   Sign Up Form
@@ -161,6 +278,14 @@ const Register = () => {
                onChange={handleUserName}
             ></InputText>
             <InputText
+               name="phone"
+               type="text"
+               label="Your Phone"
+               placeholder="enter your phone number"
+               error={errors?.phone}
+               onChange={handlePhoneNumber}
+            ></InputText>
+            <InputText
                name="email"
                type="email"
                label="Your Email"
@@ -168,28 +293,29 @@ const Register = () => {
                error={errors.email}
                onChange={handleEmail}
             ></InputText>
+
             <InputText
                name="password"
                type="password"
-               label="Your Password"
+               label="Password"
                placeholder="Enter your password"
                error={errors?.password}
                onChange={handlePassword}
             ></InputText>
             <InputText
                name="confirm"
-               type="confirm"
-               label="Your confirm password"
+               type="password"
+               label="Confirm password"
                placeholder="Enter your confirm password"
                error={errors?.confirm}
                onChange={handlePassword}
             ></InputText>
+            <InputSelection
+               label="Your Gender"
+               data={data}
+               setData={setData}
+            ></InputSelection>
             <div className="col-span-2 flex flex-col gap-3">
-               <InputSelection
-                  label="Your Gender"
-                  data={data}
-                  setData={setData}
-               ></InputSelection>
                <UploadImage
                   onChange={handleUploadImage}
                   label="Your photo"
@@ -202,16 +328,24 @@ const Register = () => {
                   checked={data.termsAndServices}
                ></CheckBox>
                <SubmitButton
-                  validation={true}
+                  validation={
+                     !firstName ||
+                     !lastName ||
+                     !email ||
+                     !username ||
+                     !password ||
+                     !confirm ||
+                     !phone ||
+                     !(confirm === password) ||
+                     !gender ||
+                     !profile ||
+                     !termsAndServices
+                  }
                   text="Sign Up Now"
                ></SubmitButton>
             </div>
          </form>
-         <div className=" flex items-center justify-center">
-            {
-               View
-            }
-         </div>
+         <div className=" flex items-center justify-center">{View}</div>
       </main>
    );
 };

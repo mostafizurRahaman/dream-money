@@ -10,7 +10,7 @@ const UploadImage = ({
    onChange,
 }: UploadImageType) => {
    return (
-      <div>
+      <div className="flex flex-col gap-1 ">
          <div>
             <label className="text-lg  text-secondary" htmlFor={name}>
                {label}
@@ -29,8 +29,8 @@ const UploadImage = ({
                      onChange={onChange}
                   />
                </label>
-               <div className=" w-1/2 h-full  rounded border-dashed border-2 border-secondary">
-                  {image && <img src={image} alt={image} />}
+               <div className=" w-1/2 h-full  rounded border-dashed flex items-center justify-center p-3 border-2 border-secondary">
+                  {image && <img className="h-full w-auto" src={image} alt={image} />}
                </div>
             </div>
          </div>

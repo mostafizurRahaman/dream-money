@@ -1,5 +1,5 @@
-import { ChangeEvent, ReactNode } from "react";
-
+import { ChangeEvent, FormEvent, ReactNode } from "react";
+import { User, UserCredential } from "firebase/auth";
 export interface childrenType {
    children: ReactNode;
 }
@@ -8,12 +8,33 @@ export interface childrenType {
 export type ChangeInputType = (e: ChangeEvent<HTMLInputElement>) => void;
 export type ChangeInputTextType = (e: ChangeEvent<HTMLTextAreaElement>) => void;
 export type ChangeSelectionType = (e: ChangeEvent<HTMLSelectElement>) => void;
+export type SaveUserType = (
+   firstName: string,
+   lastName: string,
+   photoURL: string
+) => void;
+
+export type OnSubmitType = (e: FormEvent<HTMLFormElement>) => void;
 
 // Dispatch Function types:
 export type DispatchDataType = React.Dispatch<
    React.SetStateAction<RegisterType>
 >;
 
+//  Firebase Functions Types:
+
+export type CreatUserType = (
+   email: string,
+   password: string
+) => Promise<UserCredential>;
+export type LoginUserType = (
+   email: string,
+   password: string
+) => Promise<UserCredential>;
+export type UpdateProfileInfoType = (
+   displayName: string,
+   photoURL: string
+) => Promise<void>;
 //  object types
 export type inputType = {
    name: string;
@@ -37,6 +58,7 @@ export type RegisterErrorType = {
    firstName: string;
    lastName: string;
    username: string;
+   phone: string;
    confirm: string;
    gender: string;
    termsAndServies: string;
@@ -47,6 +69,7 @@ export type RegisterType = {
    lastName: string;
    username: string;
    confirm: string;
+   phone: string;
    gender: "male" | "female";
    termsAndServices: boolean;
    profile: string;
@@ -77,3 +100,22 @@ export type CheckBoxType = {
    handleCheckBox: ChangeInputType;
    checked: boolean;
 };
+
+export type AuthInfoType = {
+   user: User | null;
+   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+   userLoading: boolean;
+   setUserLoading: React.Dispatch<React.SetStateAction<boolean>>;
+   createUser: CreatUserType;
+   LoginUser: LoginUserType;
+   updateProfileInfo: UpdateProfileInfoType;
+};
+
+export interface InputPhoneNumberType {
+   label: string;
+   type: string;
+   name: string;
+   placeholder: string;
+   onChange: ChangeInputType;
+   error: string;
+}

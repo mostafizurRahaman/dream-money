@@ -17,9 +17,9 @@ const InputSelection = ({label, data,  setData}: GenderSelectionType) => {
    }
 
    return (
-      <div>
+      <div className="flex flex-col gap-1">
       <label className="text-base font-semibold text-secondary">{label}</label>
-         <select className="w-full rounded-md border-0  -mb-1 p-2 text-base text-secondary placeholder:text-secondary"  onChange={handleSelecdtion} >
+         <select className="w-full rounded-md border-0  -mb-1 p-2 text-lg text-secondary placeholder:text-secondary font-normal"  onChange={handleSelecdtion} >
             {
                options.map((option:'male' | "female", idx:number) =><option  selected={selected === option} key={idx}  value={option} > {option}</option> )
             }

@@ -1,6 +1,5 @@
 import Banner from "../components/Banner/Banner";
-import Footer from "../components/Footer/Footer";
-import Nav from "../components/Nav/Nav";
+
 import OverviewSection from "../components/OverviewSection/OverviewSection";
 import PaymentSection from "../components/Payment/PaymentSection";
 import Section from "../components/Section/Section";
