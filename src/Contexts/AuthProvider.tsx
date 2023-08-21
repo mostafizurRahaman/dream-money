@@ -1,19 +1,23 @@
-import React, { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 import {
    AuthInfoType,
-   CreatUserType,
+   CreateUserType,
    LoginUserType,
    UpdateProfileInfoType,
    childrenType,
 } from "../Configs/types";
 import {
+   Auth,
    User,
    createUserWithEmailAndPassword,
+   getAuth,
    onAuthStateChanged,
    signInWithEmailAndPassword,
    updateProfile,
 } from "firebase/auth";
-import { auth } from "../Configs/firebase.config";
+import { app } from "../Configs/firebase.config";
+
+export const auth: Auth = getAuth(app);
 
 export const AuthContext = createContext({} as AuthInfoType);
 
@@ -21,7 +25,7 @@ const AuthProvider = ({ children }: childrenType) => {
    const [user, setUser] = useState({} as User | null);
    const [userLoading, setUserLoading] = useState<boolean>(false);
 
-   const createUser: CreatUserType = (email, password) => {
+   const createUser: CreateUserType = (email, password) => {
       setUserLoading(true);
       return createUserWithEmailAndPassword(auth, email, password);
    };
@@ -45,7 +49,7 @@ const AuthProvider = ({ children }: childrenType) => {
       setUserLoading,
       createUser,
       LoginUser,
-      updateProfileInfo, 
+      updateProfileInfo,
    };
 
    useEffect(() => {

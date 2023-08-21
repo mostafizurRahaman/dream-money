@@ -11,7 +11,7 @@ export const useToken = (email: string) => {
          fetch(`${url}email=${email}`, {
             method: "POST",
             headers: {
-               " content-type": "application/json",
+               "content-type": "application/json",
             },
          })
             .then((res) => res.json())
@@ -20,6 +20,7 @@ export const useToken = (email: string) => {
                   setToken(data.token);
                   setTokenLoading(false);
                   localStorage.setItem("dreamoneyToken", data.token);
+                  console.log("token", data);
                }
             })
             .catch((err) => {

@@ -24,7 +24,7 @@ export type DispatchDataType = React.Dispatch<
 
 //  Firebase Functions Types:
 
-export type CreatUserType = (
+export type CreateUserType = (
    email: string,
    password: string
 ) => Promise<UserCredential>;

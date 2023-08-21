@@ -1,11 +1,11 @@
 import { useState, useRef, useContext } from "react";
 import {
+   AddNewUserType,
    ChangeInputType,
    OnSubmitType,
    RegisterErrorType,
    RegisterType,
    SaveUserType,
-   newUser,
    newUserType,
    url,
 } from "../Configs/types";
@@ -17,13 +17,15 @@ import CheckBox from "../components/CheckBox/CheckBox";
 import { useLottie } from "lottie-react";
 import signUpImage from "../assets/SignUp.json";
 import { AuthContext } from "../Contexts/AuthProvider";
-import { User } from "firebase/auth";
-import { BsDatabaseGear } from "react-icons/bs";
+import { useToken } from "../hooks/useToken";
+import { NavigateFunction, useNavigate } from "react-router-dom";
+import ErrorCom from "../components/ErrorCom/ErrorCom";
 
 const Register = () => {
    const { createUser, user, updateProfileInfo } = useContext(AuthContext);
-   const [registerEmail, setRegisterEmail] = useState<string>();
+   const [registerEmail, setRegisterEmail] = useState<string | null>(null);
    const [loading, setLoading] = useState<boolean>(false);
+   const { token, tokeLoading } = useToken(registerEmail as string);
    const [data, setData] = useState<RegisterType>({
       firstName: "",
       lastName: "",
@@ -50,7 +52,11 @@ const Register = () => {
       termsAndServies: "",
       general: "",
    });
+
+   const navigate: NavigateFunction = useNavigate();
+
    const formRef = useRef(null);
+
    const handleName: ChangeInputType = (e) => {
       const name: string = e?.target?.name;
       const value: string = e?.target.value;
@@ -74,10 +80,23 @@ const Register = () => {
          setErrors({ ...errors, [name]: "enter a valid user name" });
          setData({ ...data, [name]: "" });
       } else {
-         setErrors({ ...errors, [name]: "" });
-         setData({ ...data, [name]: value });
+         fetch(`${url}users/${value}`)
+            .then((res) => res.json())
+            .then((userData) => {
+               if (userData.isExist) {
+                  setErrors({ ...errors, [name]: "user already exist" });
+                  setData({ ...data, [name]: "" });
+               } else {
+                  setErrors({ ...errors, [name]: "" });
+                  setData({ ...data, [name]: value });
+               }
+            })
+            .catch((err) => {
+               console.log(err);
+            });
       }
    };
+   
    const handleEmail: ChangeInputType = (e) => {
       const name: string = e?.target?.name;
       const value: string = e?.target?.value;
@@ -124,7 +143,7 @@ const Register = () => {
          setData({ ...data, [name]: value });
       }
    };
-   console.log(data, errors);
+
    const handleUploadImage: ChangeInputType = (e) => {
       const formData: FormData = new FormData();
       const files: FileList | null = e.target.files;
@@ -167,7 +186,7 @@ const Register = () => {
       } else if (value.length !== 11) {
          setErrors({ ...errors, [name]: "phone number must be 11 digits" });
          setData({ ...data, [name]: "" });
-      } else if (/^(013|014|015|016|017|018|019)\d{8}$/.test(value)) {
+      } else if (!/^(013|014|015|016|017|018|019)\d{8}$/.test(value)) {
          setErrors({ ...errors, [name]: "enter a valid bangladeshi number" });
          setData({ ...data, [name]: "" });
       } else {
@@ -205,14 +224,11 @@ const Register = () => {
          return;
       }
 
-      createUser(data.email, data.password)
+      createUser(email, password)
          .then((res) => {
-            const user: User = res.user;
-            if (user.email) {
-               saveUser(data.firstName, data.lastName, data.profile);
-            }
+            saveUser(data.firstName, data.lastName, data.profile);
          })
-         .catch((err) => {
+         .catch((err: any) => {
             console.log(err);
             if (err) {
                setLoading(false);
@@ -224,16 +240,12 @@ const Register = () => {
          });
    };
 
-   const saveUser: SaveUserType = (
-      firstName: string,
-      lastName: string,
-      photoURL: string
-   ) => {
+   const saveUser: SaveUserType = (firstName, lastName, photoURL) => {
       updateProfileInfo(`${firstName + "" + lastName}`, photoURL)
          .then((res) => {
             console.log(res);
             setLoading(true);
-            const newUser : newUserType = {
+            const newUser: newUserType = {
                firstName,
                lastName,
                username,
@@ -243,6 +255,7 @@ const Register = () => {
                profile,
                termsAndServices,
             };
+            AddNewUser(newUser);
          })
          .catch((err) => {
             console.log(err);
@@ -256,10 +269,11 @@ const Register = () => {
          });
    };
 
-   const AddNewUser = (newUser) => {
+   const AddNewUser: AddNewUserType = (newUser) => {
+      console.log(newUser);
       setLoading(true);
       fetch(`${url}users`, {
-         method: "Post",
+         method: "POST",
          headers: {
             "content-type": "application/json",
          },
@@ -270,10 +284,12 @@ const Register = () => {
             if (data.acknowledged) {
                setLoading(false);
                setRegisterEmail(email);
+               console.log(data);
             }
          })
          .catch((err) => {
             setLoading(false);
+            console.log(err);
             if (err) {
                setErrors({ ...errors, general: err?.message });
             }
@@ -282,13 +298,20 @@ const Register = () => {
             setLoading(false);
          });
    };
-
+   if (token) {
+      navigate("/");
+   }
+   if (loading) {
+      return (
+         <h1 className="text-5xl font-bold text-secondary ">Loading........</h1>
+      );
+   }
    return (
-      <main className="bg-primary px-10 py-10 flex items-center gap-5 ">
+      <main className="bg-primary px-10 py-10 flex lg:flex-row flex-col  items-center gap-5 ">
          <form
             onSubmit={handleRegister}
             ref={formRef}
-            className="border-dotted border-2 rounded-lg border-secondary w-1/2 px-10 py-5 grid grid-cols-2 gap-5"
+            className="border-dotted border-2 rounded-lg border-secondary w-full  lg:w-1/2 px-10 py-5 grid grid-cols-2 gap-5"
          >
             <div className="col-span-2 text-center">
                <h3
@@ -388,9 +411,12 @@ const Register = () => {
                   }
                   text="Sign Up Now"
                ></SubmitButton>
+               {errors.general && <ErrorCom>{errors.general}</ErrorCom>}
             </div>
          </form>
-         <div className=" flex items-center justify-center">{View}</div>
+         <div className=" w-full lg:w-1/2 flex items-center justify-center">
+            {View}
+         </div>
       </main>
    );
 };
