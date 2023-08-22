@@ -5,10 +5,13 @@ import { url } from "../Configs/types";
 export const useToken = (email: string) => {
    const [token, setToken] = useState<string>("");
    const [tokenLoading, setTokenLoading] = useState<boolean>(false);
+
+   console.log(email);
    useEffect(() => {
       setTokenLoading(true);
+
       if (email) {
-         fetch(`${url}email=${email}`, {
+         fetch(`${url}jwt?email=${email}`, {
             method: "POST",
             headers: {
                "content-type": "application/json",
@@ -16,6 +19,7 @@ export const useToken = (email: string) => {
          })
             .then((res) => res.json())
             .then((data) => {
+               console.log(data);
                if (data.token) {
                   setToken(data.token);
                   setTokenLoading(false);
@@ -23,7 +27,7 @@ export const useToken = (email: string) => {
                   console.log("token", data);
                }
             })
-            .catch((err) => {
+            .catch(() => {
                setTokenLoading(false);
             })
             .finally(() => {

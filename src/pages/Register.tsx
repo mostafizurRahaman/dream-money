@@ -16,16 +16,17 @@ import SubmitButton from "../components/Buttons/SubmitButton";
 import CheckBox from "../components/CheckBox/CheckBox";
 import { useLottie } from "lottie-react";
 import signUpImage from "../assets/SignUp.json";
-import { AuthContext } from "../Contexts/AuthProvider";
+import { AuthContext, auth } from "../Contexts/AuthProvider";
 import { useToken } from "../hooks/useToken";
 import { NavigateFunction, useNavigate } from "react-router-dom";
 import ErrorCom from "../components/ErrorCom/ErrorCom";
+import { sendEmailVerification } from "firebase/auth";
 
 const Register = () => {
    const { createUser, user, updateProfileInfo } = useContext(AuthContext);
-   const [registerEmail, setRegisterEmail] = useState<string | null>(null);
    const [loading, setLoading] = useState<boolean>(false);
-   const { token, tokeLoading } = useToken(registerEmail as string);
+   const [registerEmail, setRegisterEmail] = useState<string>("");
+   const { token } = useToken(registerEmail);
    const [data, setData] = useState<RegisterType>({
       firstName: "",
       lastName: "",
@@ -55,7 +56,22 @@ const Register = () => {
 
    const navigate: NavigateFunction = useNavigate();
 
-   const formRef = useRef(null);
+   const formRef = useRef<HTMLFormElement | null>(null);
+   const options = {
+      animationData: signUpImage,
+      loop: true,
+   };
+
+   const { View } = useLottie(options);
+   
+   if (token && user?.emailVerified) {
+      navigate("/");
+   }
+   if (loading) {
+      return (
+         <h1 className="text-5xl font-bold text-secondary ">Loading........</h1>
+      );
+   }
 
    const handleName: ChangeInputType = (e) => {
       const name: string = e?.target?.name;
@@ -80,7 +96,7 @@ const Register = () => {
          setErrors({ ...errors, [name]: "enter a valid user name" });
          setData({ ...data, [name]: "" });
       } else {
-         fetch(`${url}users/${value}`)
+         fetch(`${url}userchecking?username=${value}`)
             .then((res) => res.json())
             .then((userData) => {
                if (userData.isExist) {
@@ -96,7 +112,7 @@ const Register = () => {
             });
       }
    };
-   
+
    const handleEmail: ChangeInputType = (e) => {
       const name: string = e?.target?.name;
       const value: string = e?.target?.value;
@@ -109,8 +125,20 @@ const Register = () => {
          setErrors({ ...errors, [name]: `enter a valid ${name}` });
          setData({ ...data, [name]: "" });
       } else {
-         setErrors({ ...errors, [name]: "" });
-         setData({ ...data, [name]: value });
+         fetch(`${url}userchecking?email=${value}`)
+            .then((res) => res.json())
+            .then((userData) => {
+               if (userData.isExist) {
+                  setErrors({ ...errors, [name]: "email already exist" });
+                  setData({ ...data, [name]: "" });
+               } else {
+                  setErrors({ ...errors, [name]: "" });
+                  setData({ ...data, [name]: value });
+               }
+            })
+            .catch((err) => {
+               console.log(err);
+            });
       }
    };
 
@@ -190,16 +218,22 @@ const Register = () => {
          setErrors({ ...errors, [name]: "enter a valid bangladeshi number" });
          setData({ ...data, [name]: "" });
       } else {
-         setErrors({ ...errors, [name]: "" });
-         setData({ ...data, [name]: value });
+         fetch(`${url}userchecking?phone=${value}`)
+            .then((res) => res.json())
+            .then((userData) => {
+               if (userData.isExist) {
+                  setErrors({ ...errors, [name]: "phone already exist" });
+                  setData({ ...data, [name]: "" });
+               } else {
+                  setErrors({ ...errors, [name]: "" });
+                  setData({ ...data, [name]: value });
+               }
+            })
+            .catch((err) => {
+               console.log(err);
+            });
       }
    };
-   const options = {
-      animationData: signUpImage,
-      loop: true,
-   };
-
-   const { View } = useLottie(options);
 
    const {
       firstName,
@@ -226,10 +260,21 @@ const Register = () => {
 
       createUser(email, password)
          .then((res) => {
+            console.log(res); 
             saveUser(data.firstName, data.lastName, data.profile);
+            if (auth.currentUser) {
+               sendEmailVerification(auth.currentUser)
+                  .then((res) => {
+                     console.log(res);
+                  })
+                  .catch((err) => {
+                     if (err) {
+                        setErrors({ ...errors, general: err.message });
+                     }
+                  });
+            }
          })
          .catch((err: any) => {
-            console.log(err);
             if (err) {
                setLoading(false);
                setErrors({ ...errors, general: err.message });
@@ -243,7 +288,6 @@ const Register = () => {
    const saveUser: SaveUserType = (firstName, lastName, photoURL) => {
       updateProfileInfo(`${firstName + "" + lastName}`, photoURL)
          .then((res) => {
-            console.log(res);
             setLoading(true);
             const newUser: newUserType = {
                firstName,
@@ -280,11 +324,14 @@ const Register = () => {
          body: JSON.stringify(newUser),
       })
          .then((res) => res.json())
-         .then((data) => {
-            if (data.acknowledged) {
-               setLoading(false);
+         .then((userData) => {
+            if (userData.acknowledged) {
                setRegisterEmail(email);
-               console.log(data);
+               setLoading(false);
+               setData({ ...data, profile: "" });
+               if (formRef.current) {
+                  formRef.current.reset();
+               }
             }
          })
          .catch((err) => {
@@ -298,14 +345,7 @@ const Register = () => {
             setLoading(false);
          });
    };
-   if (token) {
-      navigate("/");
-   }
-   if (loading) {
-      return (
-         <h1 className="text-5xl font-bold text-secondary ">Loading........</h1>
-      );
-   }
+
    return (
       <main className="bg-primary px-10 py-10 flex lg:flex-row flex-col  items-center gap-5 ">
          <form
